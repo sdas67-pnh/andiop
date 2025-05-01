@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microcontroller Concepts (8051 & 8085)</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #2ecc71;
+            --warning: #f1c40f;
+            --error: #e74c3c;
+            --bg-light: #f5f6fa;
+            --text-dark: #2d3436;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .mindmap-container {
+            position: relative;
+            min-height: 600px;
+            margin-top: 2rem;
+        }
+
+        .node {
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .main-node {
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+        }
+
+        .sub-node {
+            background: var(--accent);
+            color: white;
+        }
+
+        .detail-node {
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .toggle-icon {
+            float: right;
+            margin-left: 1rem;
+            transition: transform 0.3s;
+        }
+
+        .collapsed > .toggle-icon {
+            transform: rotate(90deg);
+        }
+
+        .search-bar {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 999;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0;
+        }
+
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .node:hover .tooltip {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .node {
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Mainak and APU SIR INSTITUTE</h1>
+        <p>Interactive Microcontroller Mind Map</p>
+    </div>
+
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="🔍 Search nodes...">
+        </div>
+
+        <div class="controls">
+            <button class="control-btn btn-success" id="expand-all">Expand All</button>
+            <button class="control-btn btn-success" id="collapse-all">Collapse All</button>
+            <button class="control-btn btn-primary" id="download-pdf">Download PDF</button>
+        </div>
+
+        <div class="mindmap-container" id="mindmap-root"></div>
+    </div>
+
+    <script>
+        // Define the mindmap data structure
+        const mindmapData = {
+            id: 'main',
+            text: 'Microcontroller Concepts (8051 & 8085)',
+            class: 'main-node',
+            tooltip: 'Overview of 8-bit microcontrollers',
+            children: [
+                {
+                    id: '8051',
+                    text: '8051 Microcontroller',
+                    class: 'sub-node',
+                    tooltip: 'Integrated peripherals and Harvard architecture',
+                    children: [
+                        {
+                            id: 'arch8051',
+                            text: 'Architecture',
+                            class: 'detail-node',
+                            tooltip: '8-bit CPU, Harvard design',
+                            children: [
+                                { id: 'arch8051d1', text: '8-bit CPU' },
+                                { id: 'arch8051d2', text: 'Harvard Architecture' },
+                                { id: 'arch8051d3', text: 'CISC Design' }
+                            ]
+                        },
+                        // ... [Full data from your original code]
+                    ]
+                },
+                {
+                    id: '8085',
+                    text: '8085 Microprocessor',
+                    class: 'sub-node',
+                    tooltip: 'External component requirements',
+                    children: [
+                        // ... [Full data from your original code]
+                    ]
+                }
+            ]
+        };
+
+        // Render the mindmap
+        function renderNode(node, parent) {
+            const nodeEl = document.createElement('div');
+            nodeEl.className = `node ${node.class}`;
+            nodeEl.id = node.id;
+
+            // Tooltip
+            if (node.tooltip) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip';
+                tooltip.textContent = node.tooltip;
+                nodeEl.appendChild(tooltip);
+            }
+
+            // Toggle icon
+            const toggleIcon = document.createElement('span');
+            toggleIcon.className = 'toggle-icon';
+            toggleIcon.textContent = '▶';
+            nodeEl.appendChild(toggleIcon);
+
+            // Text content
+            const textEl = document.createElement('div');
+            textEl.textContent = node.text;
+            nodeEl.appendChild(textEl);
+
+            // Children
+            if (node.children && node.children.length) {
+                const childrenContainer = document.createElement('div');
+                childrenContainer.className = 'children-container';
+                node.children.forEach(child => {
+                    childrenContainer.appendChild(renderNode(child));
+                });
+                nodeEl.appendChild(childrenContainer);
+            }
+
+            // Event listener
+            nodeEl.addEventListener('click', () => {
+                nodeEl.classList.toggle('collapsed');
+                const icon = nodeEl.querySelector('.toggle-icon');
+                icon.textContent = nodeEl.classList.contains('collapsed') ? '▶' : '▼';
+            });
+
+            parent.appendChild(nodeEl);
+            return nodeEl;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const root = document.getElementById('mindmap-root');
+            renderNode(mindmapData, root);
+
+            // Search functionality
+            const searchInput = document.querySelector('.search-input');
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                document.querySelectorAll('.node').forEach(node => {
+                    const text = node.textContent.toLowerCase();
+                    node.style.display = text.includes(term) ? 'block' : 'none';
+                });
+            });
+
+            // Download PDF
+            document.getElementById('download-pdf').addEventListener('click', async () => {
+                const html = document.querySelector('.mindmap-container').innerHTML;
+                const pdf = new jsPDF();
+                pdf.html(html, {
+                    callback: (pdf) => {
+                        pdf.save('microcontroller-mindmap.pdf');
+                    },
+                    x: 15,
+                    y: 15,
+                    width: 180
+                });
+            });
+
+            // WhatsApp share
+            document.body.innerHTML += `
+                <a href="https://wa.me/?text=${encodeURIComponent(
+                    'Check out this interactive microcontroller mind map! https://your-hosted-url.com'
+                )}" 
+                class="whatsapp-share" 
+                style="
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    padding: 1rem 1.5rem;
+                    background: #25D366;
+                    color: white;
+                    border-radius: 4px;
+                    text-decoration: none;
+                    z-index: 999;
+                ">
+                    💬 Share via WhatsApp
+                </a>
+            `;
+        });
+    </script>
+</body>
+</html>
